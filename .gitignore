@@ -7,3 +7,6 @@ pyproject.toml
 .cache/
 .upm/
 __pycache__/
+.vscode/
+.idea/
+settings.json
