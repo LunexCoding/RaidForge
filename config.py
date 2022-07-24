@@ -2,6 +2,9 @@ import yaml
 import random
 
 
+CONFIGTYPES = set(['primary', 'sub'])
+
+
 class BaseConfig:
     def __init__(self, filename=None):
         self._configType = None
@@ -14,11 +17,8 @@ class BaseConfig:
         with open(self._filename, 'r') as config:
             self._data = yaml.full_load(config)
 
-    def _parseData(self):
-        pass
-
     def __enter__(self):
-        return self.data, self.type  # без надобности self, нет в планах обращаться к context
+        return self._data, self._configType  # без надобности self, нет в планах обращаться к context
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         self._data = None
@@ -46,58 +46,24 @@ class SubStatsConfig(BaseConfig):
 
 
 class ParserConfigData:
-    def __init__(self):
-        self._data = {
-            'primary': None,
-            'sub': None
-        }
 
-    def definingConfig(self, dataConfig):
-        data, type = dataConfig
-        assert type in self._data, 'Unknown config type'
+    def __init__(self):
+        self._data = {config: (data := None) for config in CONFIGTYPES}
+
+    def definingConfig(self, configData):
+        data, type = configData
+        assert type in CONFIGTYPES, 'Unknown config type'
         self._data[type] = data
 
     def requestToGetArtifactParameters(self, request):
         return self._parseRequestToGetArtifactParameters(request)
 
     def _parseRequestToGetArtifactParameters(self, request=None):
-        '''
-        Request pattern:
+        stat = request['stat']
+        data = request['data']
 
-            Primary:
-            {
-                'artifactType': ... ,
-                'stat': ... ,
-                'data': {
-                    'rank': ... ,
-                    ...
-                }
-            }
-
-            Subs:
-            {
-            'artifactType': ... ,
-            'stat': ... ,
-            'data': {
-                'rank': ... ,
-                'rarity': ... ,
-                ...
-                'primaryStat': {
-                    'statType': ... ,
-                    'statSubType': ...
-                }
-            }
-        }
-        '''
-
-        stat = request.get('stat')
-        data = request.get('data')
-
-        assert stat == 'primary' or stat == 'sub', 'Unknown stat type'
-
-        artifactType = request.get('artifactType')
-        rank = data.get('rank')
-        countSubStats = data.get('rarity')
+        artifactType = request['artifactType']
+        rank = data['rank']
 
         if stat == 'primary':
             return self._getPrimaryStat(artifactType, rank)
@@ -105,63 +71,49 @@ class ParserConfigData:
         elif stat == 'sub':
 
             primaryStatData = data['primaryStat']
+            countSubStats = data['rarity']
 
             return self._getSubStat(countSubStats, primaryStatData, rank)
 
     def _getPrimaryStat(self, arfifactType, rank):
         primaryStatType = random.choice(list(self._data['primary'][arfifactType].keys()))
         primaryStatSubType = random.choice(list(self._data['primary'][arfifactType][primaryStatType].keys()))
+        value = self._data['primary'][arfifactType][primaryStatType][primaryStatSubType][rank]
 
-        return (primaryStatType, primaryStatSubType, self._data['primary'][arfifactType][primaryStatType][primaryStatSubType][rank])
+        return dict(statType=primaryStatType, statSubType=primaryStatSubType, value=value)
 
-    def _getSubStat(self, countSubStats, primaryStatData, rank):
+    def _getSubStat(self, countStats, primaryStatData, rank):
 
-        subStatType = random.choice(list(self._data['sub'].keys()))
-        subStatSubType = random.choice(list(self._data['sub'][subStatType].keys()))
+        listSubStats = []
 
-        if [subStatType, subStatSubType] == [primaryStatData['statType'], primaryStatData['statSubType']]:
-            print(f"{subStatType}, {subStatSubType} and {primaryStatData['statType']}, {primaryStatData['statSubType']}")
-            print("Repeat")
-            return self._getSubStat(countSubStats, primaryStatData, rank)
-
-        return [(subStatType, subStatSubType), (primaryStatData['statType'], primaryStatData['statSubType'])]
-
-
-parserConfigs = ParserConfigData()
-
-with (
-    MainStatsConfig('config.yaml') as mainConfig,
-    SubStatsConfig('subconfig.yaml') as subConfig
-):
-
-    parserConfigs.definingConfig(mainConfig)
-    parserConfigs.definingConfig(subConfig)
-
-request = {
-            'artifactType': 'Gloves',
-            'stat': 'sub',
-            'data': {
-                'rank': 4,
-                'rarity': 3,
-                'primaryStat': {
-                    'statType': 'Attack',
-                    'statSubType': 'Flat'
-                }
-            }
+        dictonary = {
+            'Health': set(list(self._data['sub']['Health'].keys())),
+            'Attack': set(list(self._data['sub']['Attack'].keys())),
+            'Defense': set(list(self._data['sub']['Defense'].keys())),
+            'Accuracy': set(list(self._data['sub']['Accuracy'].keys())),
+            'Resistance': set(list(self._data['sub']['Resistance'].keys())),
+            'Crit Chance': set(list(self._data['sub']['Crit Chance'].keys())),
+            'Crit damage': set(list(self._data['sub']['Crit damage'].keys())),
+            'Speed': set(list(self._data['sub']['Speed'].keys()))
         }
 
-print(parserConfigs.requestToGetArtifactParameters(request))
+        dictonary[primaryStatData['statType']].discard(primaryStatData['statSubType'])
+        if not dictonary[primaryStatData['statType']]:
+            del dictonary[primaryStatData['statType']]
+
+        for stat in range(countStats):
+
+            statType = random.choice(list(dictonary.keys()))
+            statSubType = random.choice(list(dictonary[statType]))
+            dictonary[statType].discard(statSubType)
+            if not dictonary[statType]:
+                del dictonary[statType]
+
+            value = self._data['sub'][statType][statSubType][rank]
+
+            listSubStats.append(dict(statType=statType, statSubType=statSubType, value=value))
+
+        return listSubStats
 
 
-# Кусок старого кода, должен переместиться в новый класс
-def viewStats(self):
-    for artifactType, allMainStatsByArtifactType in self._mainStatsConstants.items():
-        print(f'{artifactType}:')
-
-        for fullDataByMainStatType in allMainStatsByArtifactType:
-            for mainStatType, fullDataByMainStatSubType in fullDataByMainStatType.items():
-                print(f'    {mainStatType}:')
-                for mainStatSubType, dataMainStatSubTypeByRank in fullDataByMainStatSubType.items():
-                    print(f'        {mainStatSubType}: {dataMainStatSubTypeByRank}')
-        print()
-
+g_parserConfigs = ParserConfigData()

@@ -1,0 +1,142 @@
+Artifact
+    type: Gloves
+    set: Speed
+    rarity: REGULAR
+    rank: 1
+    Primary stat: 
+        type: Defense
+        subtype: Percent
+        value: 1
+    Sub stats: None
+---------------
+Artifact
+    type: Armor
+    set: Speed
+    rarity: UNCOMMON
+    rank: 1
+    Primary stat: 
+        type: Attack
+        subtype: Flat
+        value: 4
+    Sub stats: 
+        Type: Defense
+        Sub type: Percent
+        Value: 1
+---------------
+Artifact
+    type: Boots
+    set: Speed
+    rarity: EPIC
+    rank: 2
+    Primary stat: 
+        type: Attack
+        subtype: Percent
+        value: 2
+    Sub stats: 
+        Type: Crit Chance
+        Sub type: Percent
+        Value: 2
+
+        Type: Health
+        Sub type: Flat
+        Value: 40
+
+        Type: Crit damage
+        Sub type: Percent
+        Value: 2
+---------------
+Artifact
+    type: Helmet
+    set: Speed
+    rarity: REGULAR
+    rank: 5
+    Primary stat: 
+        type: Health
+        subtype: Flat
+        value: 450
+    Sub stats: None
+---------------
+Artifact
+    type: Weapon
+    set: Speed
+    rarity: UNCOMMON
+    rank: 1
+    Primary stat: 
+        type: Attack
+        subtype: Flat
+        value: 4
+    Sub stats: 
+        Type: Defense
+        Sub type: Flat
+        Value: 3
+---------------
+Artifact
+    type: Boots
+    set: Speed
+    rarity: UNCOMMON
+    rank: 4
+    Primary stat: 
+        type: Speed
+        subtype: Flat
+        value: 4
+    Sub stats: 
+        Type: Defense
+        Sub type: Flat
+        Value: 14
+---------------
+Artifact
+    type: Helmet
+    set: Speed
+    rarity: REGULAR
+    rank: 3
+    Primary stat: 
+        type: Health
+        subtype: Flat
+        value: 170
+    Sub stats: None
+---------------
+Artifact
+    type: Gloves
+    set: Speed
+    rarity: UNCOMMON
+    rank: 2
+    Primary stat: 
+        type: Defense
+        subtype: Flat
+        value: 8
+    Sub stats: 
+        Type: Resistance
+        Sub type: Flat
+        Value: 2
+---------------
+Artifact
+    type: Boots
+    set: Speed
+    rarity: REGULAR
+    rank: 5
+    Primary stat: 
+        type: Speed
+        subtype: Flat
+        value: 5
+    Sub stats: None
+---------------
+Artifact
+    type: Shield
+    set: Speed
+    rarity: RARE
+    rank: 4
+    Primary stat: 
+        type: Defense
+        subtype: Flat
+        value: 16
+    Sub stats: 
+        Type: Speed
+        Sub type: Flat
+        Value: 4
+
+        Type: Crit Chance
+        Sub type: Percent
+        Value: 6
+---------------
+fg
+---------------
