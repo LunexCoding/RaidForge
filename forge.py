@@ -1,11 +1,12 @@
-from artifact import artifactsTypes, Artifact, RARITIES
+from artifact import Artifact, artifactsTypes, RARITIES
+from config import g_parserConfigs
 import random
+
 
 _RARITIES_LIST_FOR_RANDOM = set([
     RARITIES.REGULAR, RARITIES.UNCOMMON, RARITIES.RARE, RARITIES.EPIC,
     RARITIES.LEGENDARY
 ])
-
 
 _RARITIES_COUNT_SUBSTATS = {
     RARITIES.REGULAR: 0,
@@ -25,59 +26,70 @@ _RARITIES_RANDOM_RATES = {
 assert sum(
     _RARITIES_RANDOM_RATES.values()
 ) == 1
-# проверяем чтобы сумма вероятностей выпадения предметов была равна 1.
-# Если где-то провтыкали - увидем ошибку сразу
 
 
 class Forge:
-    def __init__(self, nameSet=None):
-        print('Forge call')
+    def __init__(self):
         self._nameSet = None
+        self._artifactType = None
+        self._artifactRank = None
+        self._artifactRarity = None
+        self._artifactPrimaryStat = None
+        self._artifactSubStats = None
 
     def choiseSet(self, nameSet):
         self._nameSet = nameSet
 
-    def createArtifact(self):
-        rank = random.randint(1, 7)
-        # rarity = random.choice(list(artifactsRaritys.values()))
-        rarity = self._generateRarity()
+    def generateArtifact(self):
+        self._artifactType = self._generateArtifactType()
+        self._artifactRank = self._generateArtifactRank()
+        self._artifactRarity = self._generateRarity()
+        self._artifactPrimaryStat = self._generateArtifactPrimaryStat()
+        self._artifactSubStats = self._generateArtifactSubStats()
+        return Artifact(self._artifactType, self._nameSet, self._artifactRarity, self._artifactRank, self._artifactPrimaryStat, self._artifactSubStats)
 
-        type = random.choice(list(artifactsTypes.values()))
-        primaryStat = None
-        substats = [self._getStat() for stat in range(rarity) if rarity != 0]
-        print(rarity)
-        print(substats)
-        return Artifact(type, self._nameSet, rarity, rank, primaryStat, substats)
-
-    def _getPrimaryStat(self):
-        pass
-
-    def _getStat(self):
-        """
-        Отправить запрос
-        """
-        return 'stat'
+    def _generateArtifactType(self):
+        return random.choice(list(artifactsTypes.values()))
 
     def _generateRarity(self):
-        # тут получаем рендомное число от 0 до 1. И проходимся по словарю с вероятностями. И проверяем отрезки
-        #  с вероятностями. Например, если первым из словаря попадется RARITIES.RARE с вероятностью 0.15 то
-        #  чтобы соответстновать этой вероятности value должно быть от 0 до 0.15. А если потом вторым например
-        #  RARITIES.REGULAR, то value должно попасть уже в следующий отрезок от 0.15 до 0.55. Ну и так
-        #  делим все на отрезки пока не дойдем до 1.
         value = random.random()
 
         currentRange = 0
         for rarity, chance in _RARITIES_RANDOM_RATES.items():
-            if value <= currentRange and value <= currentRange + chance:
+            if currentRange <= value and value <= currentRange + chance:
                 return rarity
             currentRange += chance
 
-        # сюда мы вообще никогда попасть не должны. По этому кинем ошибку
-        raise Exception(
-            "Abnormal behavior. Probably problems with _RARITIES_RANDOM_RATES")
+        raise Exception("Abnormal behavior. Probably problems with _RARITIES_RANDOM_RATES")
         return RARITIES.REGULAR
+
+    def _generateArtifactRank(self):
+        return random.randint(1, 6)
+
+    def _generateArtifactPrimaryStat(self):
+        request = {
+            'artifactType': self._artifactType,
+            'stat': 'primary',
+            'data': {
+                'rank': self._artifactRank,
+            }
+        }
+        return g_parserConfigs.requestToGetArtifactParameters(request)
+
+    def _generateArtifactSubStats(self):
+        request = {
+            'artifactType': self._artifactType,
+            'stat': 'sub',
+            'data': {
+                'rank': self._artifactRank,
+                'rarity': _RARITIES_COUNT_SUBSTATS[self._artifactRarity],
+                'primaryStat': {
+                    'statType': self._artifactPrimaryStat['statType'],
+                    'statSubType': self._artifactPrimaryStat['statSubType'],
+                }
+            }
+        }
+        return g_parserConfigs.requestToGetArtifactParameters(request)
 
 
 g_forge = Forge()
-g_forge.choiseSet('None')
-print(g_forge.createArtifact())
